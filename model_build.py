@@ -14,8 +14,19 @@ from tensorflow.keras.models import load_model
 from tensorflow import lite, cast, float32
 from tensorflow import saved_model
 
+# Prediction the test datasets portion
+def predictions(model, x_test, y_test, accuracy=True, axis=1):
+  
+  predictions = model.predict(x_test) # Predict the test datasets
+  pred = np.argmax(predictions, axis=axis) # Showing the greatest value from predictions (range: 0-1, biggest is 1)
+  
+  # Printing the accuracy, with comparing predictions with labels of test datasets portion
+  if accuracy: 
+    print("\nAccuracy: {0:.2f}%".format(accuracy_score(y_test, pred)*100))
+  
+  return pred, x_test, y_test
 
-def model_build():
+def model_build(params_dict):
 
     # Defining the models
 
