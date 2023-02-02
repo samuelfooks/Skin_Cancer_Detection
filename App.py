@@ -27,11 +27,11 @@ def upload_predict(upload_image, model):
     class_names=[0,1]
     # plt.imshow(load_img(upload_image), target_size=(150, 150)))
     # plt.show()
-    size = (150,150)    
-    #image = ImageOps.fit(upload_image, size, Image.ANTIALIAS)
-    img = load_img(upload_image, target_size=(150, 150))
+    size = (299,299)    
+    image = ImageOps.fit(upload_image, size, Image.ANTIALIAS)
+    #img = load_img(upload_image, target_size=(150, 150))
     img_array = []
-    img = img_to_array(img)
+    img = img_to_array(image)
     img = img.astype(np.float32) / 255
     img_array.append(img)
 
@@ -39,13 +39,13 @@ def upload_predict(upload_image, model):
 
     predictions = model.predict(img_array)
     pred = np.argmax(predictions, axis=1)
-
+    print(predictions, pred)
     prediction_prob = f"{(np.max(predictions))*100:.2f}%"
     if class_names[pred[0]] == 1:
-        diagnosis = 'Professional Examination Recommended'
+        diagnosis = 'Cancerous'
     
     elif class_names[pred[0]] == 0:
-        diagnosis = 'Unconcerning'
+        diagnosis = 'Non-Cancerous'
 
     #print(f"\nPredicting: {(np.max(predictions))*100:.2f}% of {class_names[pred[0]]}")
     # if class_names[pred[0]] != 1:
@@ -80,7 +80,14 @@ else:
     # st.write("The image is classified as",image_class)
     # st.write("The similarity score is approximately",score)
     # print("The image is classified as ",image_class, "with a similarity score of",score)
-
+    
     st.write(diagnosis)
-    st.write(prediction_prob)
-    print(diagnosis, "with a probability of ",prediction_prob)
+    st.write("probability: " + prediction_prob)
+
+    if diagnosis == 'Cancerous':
+        st.write('Book a consultation with a doctor')
+    else:
+        st.write('Not a concern yet, keep wearing sunscreen and keep an eye on it!')
+    # print(diagnosis, "with a probability of ",prediction_prob)
+
+    #HAM_0004767

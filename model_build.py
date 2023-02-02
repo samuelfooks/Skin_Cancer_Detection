@@ -1,4 +1,15 @@
 
+import os
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import zipfile
+import pandas as pd
+
+from sklearn.utils import resample
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from tensorflow.keras.applications import MobileNet, MobileNetV2, VGG16, EfficientNetB0, InceptionV3, \
@@ -14,7 +25,13 @@ from tensorflow.keras.models import load_model
 from tensorflow import lite, cast, float32
 from tensorflow import saved_model
 
-# Prediction the test datasets portion
+from data_process_split import process_split
+
+#create dataset using process_split function, chose undersample or oversample if desired
+x_train, x_val, x_test, y_train, y_val, y_test = process_split('data/new_metadata.csv', undersample=True)
+
+
+# Prediction on the test portion
 def predictions(model, x_test, y_test, accuracy=True, axis=1):
   
   predictions = model.predict(x_test) # Predict the test datasets
@@ -26,9 +43,9 @@ def predictions(model, x_test, y_test, accuracy=True, axis=1):
   
   return pred, x_test, y_test
 
-def model_build(params_dict):
+#function to train the model, choice of many pre trained models to apply transfer learning on
+#if you dont want to use transfer learning, set include_top=True
 
-    # Defining the models
 
 def trainable_model(x_train, y_train, x_val, y_val, x_test, y_test, batch_size=64, 
                     fine_tuning=False, dropout=0.25, base_model='MobileNet', 
@@ -152,3 +169,23 @@ def trainable_model(x_train, y_train, x_val, y_val, x_test, y_test, batch_size=6
   _ = predictions(model, x_test, y_test)
 
   return history, model
+
+epochs = 25
+dropout = 0.15
+batch_size = 32
+learning_rate= 1e-4
+
+base_model= 'Xception'
+
+callbacks = EarlyStopping(monitor='val_accuracy', mode='min', patience=5, verbose=1)
+
+checkpoints = ModelCheckpoint('data/modelling/' + 'model_weights/' + base_model + '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "{accuracy:.2f}acc.h5", verbose=1)
+
+history, model = trainable_model(x_train, y_train, x_val, y_val, x_test, y_test,
+                                 fine_tuning=True, epochs=25, base_model='Xception', 
+                                 dropout=0.15, regularizer=0.1, batch_size=20,
+                                 callbacks=callbacks, summary=True, checkpoint=checkpoints)
+
+saved_model_dir = os.mkdri('data/modelling/my_saved_models/')
+
+model.save(saved_model_dir + 'RandomOverSampler' + base_model + '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "_{accuracy:.2f}acc")
