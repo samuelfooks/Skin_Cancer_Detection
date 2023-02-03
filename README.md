@@ -1,7 +1,5 @@
 
-# Cancerous_Mole_Detection
-
-Simple overview of use/purpose.
+## Skin_Cancer_Detection
 
 For this project, the objective was to create an application that can evaluate the risk that a submitted image of a mole/observable skin growth
 is a cancerous or not. Doing this by making use of imaging processing and machine learning techniques used in Computer Vision.
