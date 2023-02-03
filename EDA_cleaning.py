@@ -28,7 +28,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 
 def process_data(csv, path):
-    # Resizing and moving function
+    # Resizing images and moving function
     def resize_img(SOURCE, DEST, SIZE=299):
         files = []
         for filename in os.listdir(SOURCE):
@@ -47,13 +47,12 @@ def process_data(csv, path):
 
     try:
         os.mkdir(f'{os.getcwd()}/data/images/resize_HAM10000') 
+
+         ##Resizing the images 299 x 299
+        resize_img(f'{os.getcwd()}/data/HAM10000_images_part_1/',f'{os.getcwd()}/data/resize_HAM10000/')
+        resize_img(f'{os.getcwd()}/data/HAM10000_images_part_2/',f'{os.getcwd()}/data/resize_HAM10000/')
     except:
         pass
-
-    ##Resizing the images 299 x 299
-    #resize_img(f'{os.getcwd()}/data/HAM10000_images_part_1/',f'{os.getcwd()}/data/resize_HAM10000/')
-    #resize_img(f'{os.getcwd()}/data/HAM10000_images_part_2/',f'{os.getcwd()}/data/resize_HAM10000/')
-
 
     skin_df = pd.read_csv(path + 'HAM10000_metadata.csv')
     image_path = path + '/images/resize_HAM10000'
@@ -93,37 +92,33 @@ def process_data(csv, path):
     skin_df.groupby(['Risk','cell_type']).size()
 
 
-   
+    def manual_downsample(skin_df, feature, category, samples):
 
-    #def manual_downsample(df, samples):
-        #for manual downsampling of M Nevi, instead trying random over and undersampling and class weights
+        # Because too many Melanocytic Nevi, can downsample manually
+        #balances data a bit
+        df_random = skin_df[skin_df[feature] == category].sample(n=samples, random_state=1)
+        skin_df = skin_df.drop(skin_df[skin_df[feature]== category].index)
+        skin_df = skin_df.append(df_random)
 
-        # # Because too many Melanocytic Nevi, can downsample manually
-        # #balances data a bit
-        # df_random = skin_df[skin_df['cell_type'] == 'Melanocytic nevi'].sample(n=samples, random_state=1)
-        # skin_df = skin_df.drop(skin_df[skin_df['cell_type']== 'Melanocytic nevi'].index)
-        # skin_df = skin_df.append(df_random)
+        #make new csv for downsampled dataframe
+        skin_df.to_csv('data/metadata_downsample.csv')
 
-        # #make new csv for downsampled dataframe
-        # skin_df.to_csv('data/metadata_downsample.csv')
-        #put the images of the new dataset into a different folder
-
-        # try:
-        #     os.mkdir(f'{os.getcwd()}/data/images/images_downsample')
-        # except:
-        #     pass
-
-        # df_read = pd.read_csv('data/metadata_downsample.csv')
-
-        # for i in range(len(df_read)):
-        #   copy(f"data/images/resize_HAM10000/{df_read['image_id'].values[i]}.jpg", f"data/images/images_downsample/{df_read['image_id'].values[i]}.jpg")
+        #copy the images of the new dataset into a different folder
+        try:
+            os.mkdir(f'{os.getcwd()}/data/images/images_downsample')
+        except:
+            pass
+        df_read = pd.read_csv('data/metadata_downsample.csv')
+        for i in range(len(df_read)):
+          copy(f"data/images/resize_HAM10000/{df_read['image_id'].values[i]}.jpg", f"data/images/images_downsample/{df_read['image_id'].values[i]}.jpg")
         
-        #return
+        return
 
-
-
-    # Defining dataset into labels and features
+    #if manually downsampling dataframe uncomment here, choose sample number to take from dominant result, (in this case 2410 from cell_type M. nevi)
+    #manual_downsample(skin_df, feature = 'cell_type', category='Melanocytic nevi', 2410)
     #skin_df.to_csv('data/metadata_downsample.csv')
+
+    #else write the new_metadata with Risky column to a csv to be further processed
     skin_df.to_csv('data/new_metadata.csv')
 
     return 

@@ -1,4 +1,7 @@
 
+#This file will build, train and evaluate a neural network and apply transfer learning using the dataset provided from
+#data_process_split.  The option is there to build you own "base_model" in layers, dropouts, etc or use the most
+#successful models from my testing, 'Xception', 'MobileNetV2', and 'VGG16'. Part one is the training and saving of the model
 import os
 import cv2
 import matplotlib.pyplot as plt
@@ -12,8 +15,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
-from tensorflow.keras.applications import MobileNet, MobileNetV2, VGG16, EfficientNetB0, InceptionV3, \
-                                           VGG19, Xception, DenseNet121, DenseNet201, ResNet152V2, EfficientNetB5
+from tensorflow.keras.applications import MobileNetV2, VGG16, Xception
 from tensorflow.keras.layers import Input, AveragePooling2D, Dense, Dropout, Flatten
 from tensorflow.keras import Sequential
 from tensorflow.keras.regularizers import l2
@@ -27,8 +29,15 @@ from tensorflow import saved_model
 
 from data_process_split import process_split
 
-#create dataset using process_split function, chose undersample or oversample if desired
-x_train, x_val, x_test, y_train, y_val, y_test = process_split('data/new_metadata.csv', undersample=True)
+
+#create dataset using process_split function, chose undersample or oversample if desired, sample_strategy is 0.5 by default
+# test and validation data proportions are 0.2 by default
+
+oversample=True
+undersample=False
+sample_strategy = 0.5
+
+x_train, x_val, x_test, y_train, y_val, y_test = process_split('data/new_metadata.csv', oversample=oversample, sample_strategy=sample_strategy)
 
 
 # Prediction on the test portion
@@ -45,8 +54,10 @@ def predictions(model, x_test, y_test, accuracy=True, axis=1):
 
 #function to train the model, choice of many pre trained models to apply transfer learning on
 #if you dont want to use transfer learning, set include_top=True
+#based on github.com/faniabdullah/bangkit-final-project/tree/master/Machine%20Learning%20Development/testing
 
-
+#make a function to train the model. Many parameters here to be tested based on user
+#this function provides also the image data generator function to help the model train on images that are turned, flipped, zoomed out, etc
 def trainable_model(x_train, y_train, x_val, y_val, x_test, y_test, batch_size=64, 
                     fine_tuning=False, dropout=0.25, base_model='MobileNet', 
                     regularizer=0.01, learning_rate=1e-4, epochs=15, verbose=1, 
@@ -83,11 +94,6 @@ def trainable_model(x_train, y_train, x_val, y_val, x_test, y_test, batch_size=6
     
     if valid_generator:
       valid_dataset = train_gen.flow(valX, valY, batch_size=BATCH_SIZE)
-  
-  if base_model in ['MobileNet','MobileNetV1']:
-    base_model = MobileNet(weights=weights, 
-                           include_top=include_top, 
-                           input_tensor=Input(shape=INPUT_SHAPE)) # MobileNet: 83%, Epochs: 7
 
   elif base_model is 'MobileNetV2':
     base_model = MobileNetV2(weights=weights, 
@@ -99,51 +105,19 @@ def trainable_model(x_train, y_train, x_val, y_val, x_test, y_test, batch_size=6
                        include_top=include_top, 
                        input_tensor=Input(shape=INPUT_SHAPE)) # VGG16: 90%, Epochs: 7
   
-  elif base_model in ['EfficientNetB0','EfficientNet']:
-    base_model = EfficientNetB0(weights=weights, 
-                                include_top=include_top, 
-                                input_tensor=Input(shape=INPUT_SHAPE)) # EfficientNetB0: 66%, Epochs: 6
-
-  elif base_model is 'InceptionV3':
-    base_model = InceptionV3(weights=weights, 
-                             include_top=include_top, 
-                             input_tensor=Input(shape=INPUT_SHAPE)) # Doesn't support by this dataset
-
-  elif base_model is 'VGG19':
-     base_model = VGG19(weights=weights, 
-                             include_top=include_top, 
-                             input_tensor=Input(shape=INPUT_SHAPE)) # VGG19, 83%, Epochs: 10
 
   elif base_model is 'Xception':
     base_model = Xception(weights=weights, 
                              include_top=include_top, 
                              input_tensor=Input(shape=INPUT_SHAPE)) # Xception: 95%, Epochs: 9     
 
-  elif base_model is 'DenseNet121':
-    base_model = DenseNet121(weights=weights, 
-                             include_top=include_top, 
-                             input_tensor=Input(shape=INPUT_SHAPE)) 
-
-  elif base_model is 'DenseNet201':
-    base_model = DenseNet201(weights=weights, 
-                             include_top=include_top, 
-                             input_tensor=Input(shape=INPUT_SHAPE)) # DenseNet201: 82% Epochs: 6
-
-  elif base_model is 'ResNet152V2':
-    base_model = ResNet152V2(weights=weights, 
-                             include_top=include_top, 
-                             input_tensor=Input(shape=INPUT_SHAPE)) # ResNet152V2: 75%, Epochs: 6
-
-  elif base_model is 'EfficientNetB5':
-    base_model = EfficientNetB5(weights=weights, 
-                             include_top=include_top, 
-                             input_tensor=Input(shape=INPUT_SHAPE)) # Never tested this
 
   base_model.trainable=False
 
   if fine_tuning:
     base_model.trainable=True
-    
+
+  #model architecture, can use pretrained base_model or not  
   model = Sequential([base_model, 
                       AveragePooling2D(pool_size=(pool_size ,pool_size)),      
                       Flatten(), 
@@ -170,22 +144,93 @@ def trainable_model(x_train, y_train, x_val, y_val, x_test, y_test, batch_size=6
 
   return history, model
 
-epochs = 25
+#chose number of epochs, batch and learning rate, fine_tuning= True allows the base model to train
+#setting include_top=True will freeze the last layer of the base_model
+
+epochs = 20
 dropout = 0.15
 batch_size = 32
 learning_rate= 1e-4
-
+fine_tuning = True
+include_top= False
 base_model= 'Xception'
 
-callbacks = EarlyStopping(monitor='val_accuracy', mode='min', patience=5, verbose=1)
+callbacks = EarlyStopping(monitor='val_loss', mode='min', patience=10, verbose=1)
 
-checkpoints = ModelCheckpoint('data/modelling/' + 'model_weights/' + base_model + '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "{accuracy:.2f}acc.h5", verbose=1)
+#create a directory and store the model weights based on parameters chosen, to keep track of trained models
+#in future versions a link with ML flow will be used here instead
+if oversample:
+  sampling = 'RandomOverSample'
+elif undersample:
+  sampling = 'RandomUnderSample'
 
+try:
+  os.mkdir('data/modelling/model_weights/' +  base_model + sampling + str(sample_strategy) + '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "_03022023")
+except:
+  pass
+
+model_weights_run= 'data/modelling/model_weights/' +  base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "_03022023"
+
+checkpoints = ModelCheckpoint(model_weights_run + base_model + sampling + str(sample_strategy) + '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "{accuracy:.2f}acc" + "_03022023.h5", verbose=1)
+
+#train the model and display stats per epoch, save the weights, and monitor the callbacks to stop early if necessary
 history, model = trainable_model(x_train, y_train, x_val, y_val, x_test, y_test,
-                                 fine_tuning=True, epochs=25, base_model='Xception', 
-                                 dropout=0.15, regularizer=0.1, batch_size=20,
+                                 fine_tuning=fine_tuning, epochs=epochs, base_model=base_model, 
+                                 dropout=dropout, regularizer=0.1, batch_size=batch_size,
                                  callbacks=callbacks, summary=True, checkpoint=checkpoints)
 
-saved_model_dir = os.mkdri('data/modelling/my_saved_models/')
+#save the model for use in the App.py
+saved_model_dir = os.mkdir('data/modelling/my_saved_models/')
 
-model.save(saved_model_dir + 'RandomOverSampler' + base_model + '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "_{accuracy:.2f}acc")
+model.save(saved_model_dir + base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + " {accuracy:.2f}acc" + '_03022023')
+
+#This part will evaluate the performance of the models predictions vs the test data
+
+# Scoring saved models/checkpoint models
+
+#model = load_model('data/modelling/my_saved_models/RandomOverSamplerXception_dropout0.15_epochs12_{accuracy:.2f}acc')
+model = load_model('data/modelling/my_saved_models/RandomUnderSamplerXception_dropout0.15_epochs12_{accuracy:.2f}acc')
+
+def scoring(model, x_test, y_test, verbose=10, returning='confusion_matrix'):
+  
+  score = model.evaluate(x_test, y_test, verbose=verbose)
+  predicting = model.predict(x_test)
+  pred = np.argmax(predicting, axis=1)
+  conf = confusion_matrix(y_test, pred)  
+  
+  if returning in ['score', 'scoring']:
+    return score
+  
+  if returning in ['predicting', 'pred', 'predict']:
+    return pred
+
+  if returning in ['conf', 'confusion_matrix', 'confussion', 
+                   'confusion', 'conf_mat', 'confusion_mat']:
+    return conf
+
+
+score = scoring(model, x_test, y_test, returning='score')
+confusion_mat = scoring(model, x_test, y_test, returning='confusion_mat')
+
+def plot_confusionmat(model_plot_dir, model_plot, confusion_mat, class_names, cmap='GnBu'):
+  
+  fig, ax = plt.subplots(figsize=(10,10))
+  
+  sns.heatmap(confusion_mat, annot=True, fmt='.2f',
+            xticklabels=[f"{c}" for c in class_names], 
+            yticklabels=[f"{c}" for c in class_names],
+            cmap=cmap)
+  
+  plt.ylabel('Actual')
+  plt.xlabel('Predicted')
+  plt.savefig(model_plot_dir + model_plot)
+  return plt.show()
+
+class_names = [0,1]
+try:
+  os.mkdir('data/saved_models/plots')
+except:
+  pass 
+model_plot_dir = 'data/saved_models/plots/'
+model_plot = base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + " {accuracy:.2f}acc" + '_03022023' + 'confusion_matrix.png'
+plot_confusionmat(confusion_mat, class_names)
