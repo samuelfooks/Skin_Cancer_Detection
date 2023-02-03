@@ -1,10 +1,11 @@
 
 import streamlit as st
+from streamlit_drawable_canvas import st_canvas
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from tensorflow.keras.applications.imagenet_utils import decode_predictions
 import cv2
-
+from streamlit_cropper import st_cropper
 from PIL import Image, ImageOps
 import numpy as np
  
@@ -14,15 +15,14 @@ def load_model():
   return model
 with st.spinner('Model is being loaded..'):
   model=load_model()
- 
-st.write("""
-         # Image Classification
+
+st.title("""
+         Mole Classification Application
          """
          )
- 
-file = st.file_uploader("Upload the image to be classified U0001F447", type=["jpg", "jpeg", "png"])
-st.set_option('deprecation.showfileUploaderEncoding', False)
- 
+st.subheader("Using Computer Vision and TensorFlow")
+
+
 def upload_predict(upload_image, model):
     class_names=[0,1]
     # plt.imshow(load_img(upload_image), target_size=(150, 150)))
@@ -46,22 +46,33 @@ def upload_predict(upload_image, model):
     
     elif class_names[pred[0]] == 0:
         diagnosis = 'Non-Cancerous'
-
     
     return prediction_prob, diagnosis
+
+choosen = st.radio(
+    "Choose:",
+    ('Upload Photo', 'Take Picture Now'))
+
+if choosen == 'Upload Photo':
+    file = st.file_uploader("Upload the image to be classified", type=["jpg", "jpeg", "png"])
+    st.set_option('deprecation.showfileUploaderEncoding', False)
+
+elif choosen == 'Take Picture Now':
+    file = st.camera_input("Take a picture")
+
 if file is None:
-    st.text("Please upload an image file")
+    st.text("Please provide an Image")
 else:
     image = Image.open(file)
     st.image(image, use_column_width=True)
     prediction_prob,diagnosis = upload_predict(image, model)
-   
-    
+
     st.write(diagnosis)
-    st.write("probability: " + prediction_prob)
+    st.write("Probability: " + prediction_prob)
 
     if diagnosis == 'Cancerous':
         st.write('Book a consultation with a doctor')
+        st.button('Search my Area')
     else:
         st.write('Not a concern yet, keep wearing sunscreen and keep an eye on it!')
 
