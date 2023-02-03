@@ -10,7 +10,7 @@ import numpy as np
  
 @st.cache(allow_output_mutation=True)
 def load_model():
-  model=tf.keras.models.load_model('data/modelling/my_saved_models/RandomUnderSamplerXception_dropout0.15_epochs12_{accuracy:.2f}acc')
+  model=tf.keras.models.load_model('SAM_multimodel_binarytarget_31012023')
   return model
 with st.spinner('Model is being loaded..'):
   model=load_model()
@@ -27,7 +27,7 @@ def upload_predict(upload_image, model):
     class_names=[0,1]
     # plt.imshow(load_img(upload_image), target_size=(150, 150)))
     # plt.show()
-    size = (299,299)    
+    size = (150,150)    
     image = ImageOps.fit(upload_image, size, Image.ANTIALIAS)
     #img = load_img(upload_image, target_size=(150, 150))
     img_array = []
