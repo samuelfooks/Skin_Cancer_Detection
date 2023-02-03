@@ -7,11 +7,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import zipfile
-import pandas as pd
 
-from sklearn.utils import resample
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
@@ -22,7 +18,6 @@ from tensorflow.keras.regularizers import l2
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.keras.utils import get_file
 from tensorflow.keras.models import load_model
 from tensorflow import lite, cast, float32
 from tensorflow import saved_model

@@ -1,31 +1,14 @@
+
+#This file performs the preliminary Exploratory Data Analysis and provides options for alterations and refinement in the metadata
 # To remove all warnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
 import os
 import cv2
 import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sn
-import zipfile
 import pandas as pd
-import requests
-import random
-import calendar
-import time
-
-from PIL import Image
-
-from tqdm import tqdm
-
-from shutil import move
 from shutil import copy
-from shutil import make_archive
-from shutil import rmtree
 
-from sklearn.utils import resample
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix
 
 def process_data(csv, path):
     # Resizing images and moving function
@@ -91,11 +74,10 @@ def process_data(csv, path):
 
     skin_df.groupby(['Risk','cell_type']).size()
 
-
+    #optional function to manually downsample a specific category of data from within a given feature in the dataset
     def manual_downsample(skin_df, feature, category, samples):
 
         # Because too many Melanocytic Nevi, can downsample manually
-        #balances data a bit
         df_random = skin_df[skin_df[feature] == category].sample(n=samples, random_state=1)
         skin_df = skin_df.drop(skin_df[skin_df[feature]== category].index)
         skin_df = skin_df.append(df_random)
