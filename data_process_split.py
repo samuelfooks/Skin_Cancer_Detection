@@ -59,14 +59,14 @@ def process_split(csv, test_size=0.2, validation_size=0.2, sample_strategy=0.5, 
 
     img, target = define_dataset(csv)
     # Splitting into train, valid and test with upsampling or downsampling all of the data
-    x_train, x_val, x_test, y_train, y_val, y_test = split_data(img, target, oversample=oversample, undersample=undersample, test_size=0.2, validation_size=0.15)
+    x_train, x_val, x_test, y_train, y_val, y_test = split_data(img, target, oversample=oversample, undersample=undersample, test_size=0.2, validation_size=0.2)
 
     y_train_series = pd.Series(y_train)
     print(y_train_series.value_counts())
 
 
     #convert the images to vectors, default 150 * 150.  Then rescale by 255
-    def to_tensor(image_paths, oversample=oversample, undersample=undersample, size=150):
+    def to_tensor(image_paths, oversample=False, undersample=False, size=150):
         imgs = []
         for i in tqdm(image_paths):
             if oversample or undersample: # If datasets is balanced
@@ -83,7 +83,7 @@ def process_split(csv, test_size=0.2, validation_size=0.2, sample_strategy=0.5, 
     #Here must specify if either undersample or oversample has been done, in order to process the array output that comes from over or under sampling
     #make each image into a tensor ready for the model
     if oversample or undersample:
-        x_train = to_tensor(x_train, oversample=oversample, size=150)
+        x_train = to_tensor(x_train, oversample=True, size=150)
     else:
         x_train = to_tensor(x_train, size=150)   
     x_val = to_tensor(x_val, size=150)

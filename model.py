@@ -30,7 +30,7 @@ from data_process_split import process_split
 
 oversample=True
 undersample=False
-sample_strategy = 0.5
+sample_strategy = 0.3
 
 x_train, x_val, x_test, y_train, y_val, y_test = process_split('data/new_metadata.csv', oversample=oversample, sample_strategy=sample_strategy)
 
@@ -90,6 +90,11 @@ def trainable_model(x_train, y_train, x_val, y_val, x_test, y_test, batch_size=6
     if valid_generator:
       valid_dataset = train_gen.flow(valX, valY, batch_size=BATCH_SIZE)
 
+  if base_model is 'Xception':
+    base_model = Xception(weights=weights, 
+                             include_top=include_top, 
+                             input_tensor=Input(shape=INPUT_SHAPE)) # Xception: 95%, Epochs: 9 
+                                 
   elif base_model is 'MobileNetV2':
     base_model = MobileNetV2(weights=weights, 
                              include_top=include_top, 
@@ -101,10 +106,7 @@ def trainable_model(x_train, y_train, x_val, y_val, x_test, y_test, batch_size=6
                        input_tensor=Input(shape=INPUT_SHAPE)) # VGG16: 90%, Epochs: 7
   
 
-  elif base_model is 'Xception':
-    base_model = Xception(weights=weights, 
-                             include_top=include_top, 
-                             input_tensor=Input(shape=INPUT_SHAPE)) # Xception: 95%, Epochs: 9     
+  
 
 
   base_model.trainable=False
@@ -164,9 +166,9 @@ try:
 except:
   pass
 
-model_weights_run= 'data/modelling/model_weights/' +  base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "_03022023"
+model_weights_run= 'data/modelling/model_weights/'
 
-checkpoints = ModelCheckpoint(model_weights_run + base_model + sampling + str(sample_strategy) + '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "{accuracy:.2f}acc" + "_03022023.h5", verbose=1)
+checkpoints = ModelCheckpoint(model_weights_run + base_model + sampling + str(sample_strategy) + '_dropout' +  str(dropout) + '_epochs' + str(epochs) + "{accuracy:.2f}acc" + "_03022023_run2.h5", verbose=1)
 
 #train the model and display stats per epoch, save the weights, and monitor the callbacks to stop early if necessary
 history, model = trainable_model(x_train, y_train, x_val, y_val, x_test, y_test,
@@ -175,9 +177,11 @@ history, model = trainable_model(x_train, y_train, x_val, y_val, x_test, y_test,
                                  callbacks=callbacks, summary=True, checkpoint=checkpoints)
 
 #save the model for use in the App.py
-saved_model_dir = os.mkdir('data/modelling/my_saved_models/')
-
-model.save(saved_model_dir + base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + " {accuracy:.2f}acc" + '_03022023')
+try:
+  saved_model_dir = os.mkdir('data/modelling/my_saved_models/')
+except:
+  pass
+model.save(saved_model_dir + base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + " {accuracy:.2f}acc" + '_03022023_run2')
 
 #This part will evaluate the performance of the models predictions vs the test data
 
