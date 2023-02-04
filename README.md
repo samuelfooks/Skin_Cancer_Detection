@@ -1,4 +1,5 @@
 ## Skin_Cancer_Detection
+Final Machine Learning Project @ BeCode February 2023
 
 For this project, the objective was to create an application that can evaluate the risk that a submitted image of a mole/observable skin growth
 is a cancerous or not. Doing this by making use of imaging processing and machine learning techniques used in Computer Vision.
@@ -61,5 +62,8 @@ Samuel Fooks
 
 Free license, open source
 ## Acknowledgments
+Thanks BeCode Coaches!
+Louis D.V.
+Chrysanthi K.
 
 Great starting basis and examples for models to apply transfer learning from https://github.com/faniabdullah/bangkit-final-project
