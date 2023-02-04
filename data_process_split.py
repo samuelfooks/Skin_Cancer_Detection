@@ -23,12 +23,12 @@ from PIL import Image
 from tqdm import tqdm
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 
-def process_split(csv, test_size=0.2, validation_size=0.2, sample_strategy=0.5, oversample=False, undersample=False):
+def process_split(csv, model_directory, test_size=0.2, validation_size=0.2, sample_strategy=0.5, oversample=False, undersample=False):
 
     def define_dataset(csv, unique=False):
             df = pd.read_csv(csv)
             img = df['image_id'] 
-            target = df['Risk'].values 
+            target = df['Risk']
             if unique: # Counting unique values
                 df['cell_type'].value_counts() # Returning amout of unique value
             return img, target
@@ -48,6 +48,14 @@ def process_split(csv, test_size=0.2, validation_size=0.2, sample_strategy=0.5, 
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
         x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=validation_size)
 
+        #make csvs of the data, because over and undersampling different everytime
+        x_train.to_csv(model_directory + 'x_train_csv.csv')
+        y_train.to_csv(model_directory + 'y_train_csv.csv')
+        x_test.to_csv(model_directory + 'x_test_csv.csv')
+        y_test.to_csv(model_directory + 'y_test_csv.csv')
+        x_val.to_csv(model_directory + 'x_val_csv.csv')
+        y_val.to_csv(model_directory + 'y_val_csv.csv')
+
         #apply over or undersampling on x_train and y_train
         if oversample:
             x_train, y_train = balancing_dataset(x_train, y_train, oversample=True, undersample=False)
@@ -55,6 +63,7 @@ def process_split(csv, test_size=0.2, validation_size=0.2, sample_strategy=0.5, 
             x_train, y_train = balancing_dataset(x_train, y_train, oversample=False, undersample=True)
         # Print the results of splitting
         print("Train: ", x_train.shape[0]), print("Val: ", x_val.shape[0]), print("Test: ", x_test.shape[0]), 
+        
         return x_train, x_val, x_test, y_train, y_val, y_test
 
     img, target = define_dataset(csv)
@@ -63,7 +72,6 @@ def process_split(csv, test_size=0.2, validation_size=0.2, sample_strategy=0.5, 
 
     y_train_series = pd.Series(y_train)
     print(y_train_series.value_counts())
-
 
     #convert the images to vectors, default 150 * 150.  Then rescale by 255
     def to_tensor(image_paths, oversample=False, undersample=False, size=150):
