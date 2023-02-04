@@ -29,13 +29,11 @@ physicians if the resulting prediction is cancerous.
 ## Getting Started
 First download the dataset from https://www.kaggle.com/kmader/skin-cancer-mnist-ham10000
 
-After doing some Exploratory Data Analyis, create a metadata csv
-Run the model.py file, choosing the appropriate parameters(oversampling, base_model, etc)
-Once you have a trained model, check through the evaluation metrics and also check to see that it can make predictions from the saved test csv files
+After doing some Exploratory Data Analyis, create a metadata csv.  Run the model.py file, choosing the appropriate parameters(oversampling, base_model, etc)  Once you have a trained model, check through the evaluation metrics and also check to see that it can make predictions from the saved test csv files.
 
-Then deploy the model in App.py, locally or online
+Then deploy the model in App.py, locally or online.
 
-Enjoy
+Enjoy!
 
 ### Dependencies
 
@@ -55,7 +53,6 @@ Use this model then in the App.py and deploy on any platform of choice
 ### Authors
 
 Samuel Fooks
-
 ### Version History
 
 * 0.1
