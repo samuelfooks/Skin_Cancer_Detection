@@ -9,6 +9,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from datetime import datetime
 
 from sklearn.metrics import accuracy_score, confusion_matrix
 
@@ -25,6 +26,7 @@ from tensorflow import lite, cast, float32
 from tensorflow import saved_model
 
 from data_process_split import process_split
+
 
 # Prediction on the test portion
 def predictions(model, x_test, y_test, accuracy=True, axis=1):
@@ -136,8 +138,8 @@ callbacks = EarlyStopping(monitor='val_loss', mode='min', patience=10, verbose=1
 
 #make directories for all training data, model weights, and model
 
-os.mkdir('data/modelling/my_saved_models/' + base_model + '_04022023' + '_run2/')
-saved_model_dir = 'data/modelling/my_saved_models/' + base_model + '_04022023' + '_run2/'
+os.mkdir('data/modelling/my_saved_models/' + base_model + date.today + '_run1/')
+saved_model_dir = 'data/modelling/my_saved_models/' + base_model + date.today + '_run1/'
 os.mkdir(saved_model_dir + 'model_weights/')
 model_weights_dir = saved_model_dir + '/model_weights/'
 
@@ -164,7 +166,7 @@ history, model = trainable_model(x_train, y_train, x_val, y_val, x_test, y_test,
                                  callbacks=callbacks, summary=True, checkpoint=checkpoints)
 
 #save the model for use in the App.py
-model.save(saved_model_dir + base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + " {accuracy:.2f}acc" + '_04022023_run1')
+model.save(saved_model_dir + base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + " {accuracy:.2f}acc" + date.today + 'run1')
 
 #score the test data based on the trained model(or another saved model)
 def scoring(model, x_test, y_test, verbose=10, returning='confusion_matrix'):
