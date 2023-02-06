@@ -11,7 +11,7 @@ import numpy as np
  
 @st.cache(allow_output_mutation=True)
 def load_model():
-  model=tf.keras.models.load_model('HAM10000_Xception_dropout015_0.98acc.h5')
+  model=tf.keras.models.load_model('data/modelling/my_saved_models/Xception2023-02-05_run3/model_weights/XceptionRandomOverSampleauto_dropout0.05_epochs200.98acc.h5')
   return model
 with st.spinner('Model is being loaded..'):
   model=load_model()
@@ -22,7 +22,7 @@ st.title("""
          )
 st.subheader("Using Computer Vision and TensorFlow")
 
-
+#function to upload the images and model
 def upload_predict(upload_image, model):
     class_names=[0,1]
     # plt.imshow(load_img(upload_image), target_size=(150, 150)))
@@ -49,19 +49,21 @@ def upload_predict(upload_image, model):
     
     return prediction_prob, diagnosis
 
+#menu to choose upload or take a photo
 choosen = st.radio(
     "Choose:",
     ('Upload Photo', 'Take Picture Now'))
-
+#upload a photo
 if choosen == 'Upload Photo':
     file = st.file_uploader("Upload the image to be classified", type=["jpg", "jpeg", "png"])
     st.set_option('deprecation.showfileUploaderEncoding', False)
-
+#enable taking a photo using the webcam
 elif choosen == 'Take Picture Now':
     file = st.camera_input("Take a picture")
 
 if file is None:
     st.text("Please provide an Image")
+#open the image, display it, run the model 
 else:
     image = Image.open(file)
     st.image(image, use_column_width=True)

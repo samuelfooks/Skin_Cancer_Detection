@@ -35,12 +35,12 @@ def process_split(csv, model_directory, test_size=0.2, validation_size=0.2, samp
     
     def split_data(x, y, test_size=test_size, validation_size=validation_size, oversample=False, undersample=False):
         # Balancing the datasets, if the datasets not balanced so this function will balanced them
-        def balancing_dataset(x_train, y_train, oversample=False, undersample=False):
+        def balancing_dataset(x_train, y_train, oversample=False, undersample=False, sample_strategy= sample_strategy):
             if oversample:
-                oversample= RandomOverSampler()
+                oversample= RandomOverSampler(sampling_strategy=sample_strategy)
                 x_train,y_train = oversample.fit_resample(x_train.values.reshape(-1,1),y_train)
             if undersample:
-                undersample = RandomUnderSampler()
+                undersample = RandomUnderSampler(sampling_strategy=sample_strategy)
                 x_train, y_train  = undersample.fit_resample(x_train.values.reshape(-1,1),y_train)
             return x_train, y_train
         

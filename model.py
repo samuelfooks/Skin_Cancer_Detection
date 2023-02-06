@@ -28,7 +28,7 @@ from tensorflow import saved_model
 from data_process_split import process_split
 
 
-# Prediction on the test portion
+# Prediction function to be used on the test portion
 def predictions(model, x_test, y_test, accuracy=True, axis=1):
   
   predictions = model.predict(x_test) # Predict the test datasets
@@ -124,9 +124,9 @@ def trainable_model(x_train, y_train, x_val, y_val, x_test, y_test, batch_size=6
   return history, model
 
 #chose number of epochs, batch and learning rate, fine_tuning= True allows the base model to train
-#setting include_top=True will freeze the last layer of the base_model
+#setting include_top=True will unfreeze the last layer of the base_model
 epochs = 20
-dropout = 0.15
+dropout = 0.05
 batch_size = 32
 learning_rate= 1e-4
 fine_tuning = True
@@ -138,18 +138,18 @@ callbacks = EarlyStopping(monitor='val_loss', mode='min', patience=10, verbose=1
 
 #make directories for all training data, model weights, and model
 
-os.mkdir('data/modelling/my_saved_models/' + base_model + date.today + '_run1/')
-saved_model_dir = 'data/modelling/my_saved_models/' + base_model + date.today + '_run1/'
+os.mkdir('data/modelling/my_saved_models/' + base_model + datetime.today().strftime('%Y-%m-%d') + '_run3/')
+saved_model_dir = 'data/modelling/my_saved_models/' + base_model + datetime.today().strftime('%Y-%m-%d') + '_run3/'
 os.mkdir(saved_model_dir + 'model_weights/')
 model_weights_dir = saved_model_dir + '/model_weights/'
 
 #choose sampling type and proportion for the splitting function
 oversample=True
 undersample=False
-sample_strategy = 0.4
+sample_strategy = 'auto'
 
 # test and validation data proportions are 0.2 by default
-x_train, x_val, x_test, y_train, y_val, y_test = process_split('data/new_metadata.csv', saved_model_dir, oversample=oversample, sample_strategy=sample_strategy)
+x_train, x_val, x_test, y_train, y_val, y_test = process_split('data/2023-02-05_metadata_manual_downsample.csv', saved_model_dir, oversample=oversample, sample_strategy=sample_strategy)
 
 if oversample:
   sampling = 'RandomOverSample'
@@ -166,7 +166,7 @@ history, model = trainable_model(x_train, y_train, x_val, y_val, x_test, y_test,
                                  callbacks=callbacks, summary=True, checkpoint=checkpoints)
 
 #save the model for use in the App.py
-model.save(saved_model_dir + base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + " {accuracy:.2f}acc" + date.today + 'run1')
+model.save(saved_model_dir + base_model + sampling + str(sample_strategy)+ '_dropout' +  str(dropout) + '_epochs' + str(epochs) + " {accuracy:.2f}acc" + datetime.today().strftime('%Y-%m-%d') + 'run3')
 
 #score the test data based on the trained model(or another saved model)
 def scoring(model, x_test, y_test, verbose=10, returning='confusion_matrix'):
